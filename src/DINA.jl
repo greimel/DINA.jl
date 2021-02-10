@@ -2,15 +2,16 @@ module DINA
 
 export get_dina, dina_years, aggregate_quantiles, dina_quantile_panel
 
-using DataDeps
-using StatFiles
-using TableOperations
 using CategoricalArrays: cut
-using DataFrames: DataFrame, disallowmissing!, groupby, combine
-using ReadableRegex: look_for, one_or_more, DIGIT
-using LinearAlgebra: dot
 using Chain: @chain
+using DataDeps: register, DataDep, @datadep_str, unpack
+using DataFrames: DataFrame, disallowmissing!, groupby, combine
+using LinearAlgebra: dot
+using ReadableRegex: look_for, one_or_more, DIGIT
+using StatFiles: load
 using StatsBase: wquantile
+using TableOperations
+
 
 function __init__()
     register(DataDep(
