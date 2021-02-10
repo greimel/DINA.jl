@@ -1,10 +1,11 @@
 module DINA
 
-export get_dina
+export get_dina, dina_years
 
 using DataDeps
 using StatFiles
 using DataFrames: DataFrame
+using ReadableRegex: look_for, one_or_more, DIGIT
 
 function __init__()
     register(DataDep(
@@ -22,16 +23,25 @@ function __init__()
         """,
         "https://eml.berkeley.edu/~saez/PSZ2020Dinafiles.zip",
         "1115e8bd58b5ed073670ee31a3fffd9f968e85b5bc365a81035a3fd679cdcc86",
-        #[checksum::Union{String,Vector{String}...},]; # Optional, if not provided will generate
-        # keyword args (Optional):
-        #fetch_method=fetch_default # (remote_filepath, local_directory_path)->local_filepath
         post_fetch_method=unpack
     ))
 end
 
-function get_dina(year) 
+function dina_years()
+	files_in_data_dir = readdir(@datadep_str("USDINA"))
+	dta_files = filter(endswith(".dta"), files_in_data_dir)
+	
+	r = look_for(one_or_more(DIGIT))
+	
+	map(dta_files) do f
+		year_string = match(r, f).match
+		parse(Int, year_string)
+	end
+end
+
+function get_dina(year)
     file = "USDINA/usdina$(year).dta"
-    load(@datadep_str(file)) |> DataFrame
+    load(@datadep_str(file))
 end
 
 end
