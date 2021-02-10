@@ -41,7 +41,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: aggregated-dina
-          path: ./*.csv
+          path: ./test/*.csv
   docs:
     name: Documentation
     runs-on: ubuntu-latest
