@@ -39,9 +39,7 @@ function dina_years()
 	end
 end
 
-function get_dina(year) 
-    @assert year in dina_years()
-
+function get_dina(year)
     file = "USDINA/usdina$(year).dta"
     load(@datadep_str(file))
 end
