@@ -46,7 +46,7 @@ function get_dina(year)
     @assert year in dina_years()
 
     file = "USDINA/usdina$(year).dta"
-    load(@datadep_str(file)) #|> DataFrame
+    load(@datadep_str(file))
 end
 
 end
