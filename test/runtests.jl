@@ -3,11 +3,9 @@ using Test
 
 @testset "DINA.jl" begin
 
-    df = get_dina(1980)
-
-    @show size(df)
+    tbl = get_dina(1980)
+    @test tbl isa DINA.StatFiles.StatFile
 
     @test sort(dina_years) == [1962; 1964; 1966:2019]
 
-    # Write your tests here.
 end
