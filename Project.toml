@@ -6,13 +6,15 @@ version = "0.1.0"
 [deps]
 DataDeps = "124859b0-ceae-595e-8997-d05f6a7a8dfe"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+ReadableRegex = "cbbcb084-453d-4c4c-b292-e315607ba6a4"
 StatFiles = "1463e38c-9381-5320-bcd4-4134955f093a"
 
 [compat]
-julia = "1"
 DataDeps = "0.7"
 DataFrames = "0.22"
+ReadableRegex = "0.3"
 StatFiles = "0.8"
+julia = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
