@@ -5,10 +5,10 @@ export get_dina, dina_years, aggregate_quantiles, dina_quantile_panel
 using CategoricalArrays: cut
 using Chain: @chain
 using DataDeps: register, DataDep, @datadep_str, unpack
-using DataFrames: DataFrame, disallowmissing!, groupby, combine
+using DataFrames: DataFrames, DataFrame, disallowmissing!, groupby, combine
 using LinearAlgebra: dot
 using ReadableRegex: look_for, one_or_more, DIGIT
-using StatFiles: load
+using StatFiles: StatFiles, load
 using StatsBase: wquantile
 using TableOperations
 
