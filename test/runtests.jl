@@ -1,4 +1,5 @@
 using DINA
+import CSV
 using Test
 
 @testset "DINA.jl" begin
@@ -12,4 +13,6 @@ using Test
     df = dina_quantile_panel(var, :fiinc, 10)
     @test df isa DINA.DataFrames.DataFrame
     @test size(df) == (1530, 10)
+
+    df |> CSV.write("dina-aggregated.csv")
 end
