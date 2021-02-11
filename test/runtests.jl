@@ -14,7 +14,7 @@ using Test
     @test df isa DINA.DataFrames.DataFrame
     @test size(df) == (1530, 10)
 
-    filename = joinpath(__DIR__(), "dina-aggregated.csv")
+    filename = joinpath(@__DIR__(), "dina-aggregated.csv")
     df |> CSV.write(filename)
 
     @show filename
