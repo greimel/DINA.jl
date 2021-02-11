@@ -1,7 +1,11 @@
 name: CI
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: 
+      - main
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
@@ -38,6 +42,10 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+      - uses: actions/upload-artifact@v2
+        with:
+          name: aggregated-dina
+          path: ./test/*.csv
   docs:
     name: Documentation
     runs-on: ubuntu-latest
