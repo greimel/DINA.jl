@@ -7,7 +7,12 @@ CurrentModule = DINA
 ```@eval
 
 ```
-This package uses DataDeps.jl to download the distributional national accounts dataset from www.zucman.eu/usdina. The data are stored in `.julia/datadeps/dina/`. They can be accessed the following way.
+
+This package uses DataDeps.jl to download the US distributional national accounts (DINA) dataset from [Gabriel Zucman's website](http://gabriel-zucman.eu/usdina/). The data are downloaded in bulk (<1GB) and stored in `.julia/datadeps/dina/`.
+
+The dataset is described in Piketty, T, E. Saez and G. Zucman: **Distributional National Accounts: Methods and Estimates for the United States**, *Quarterly Journal of Economics, 2018, 133 (2): 553-609.*
+
+The variables are described in this document [the codebook at Gabriel Zucman's website](http://gabriel-zucman.eu/files/PSZCodebook.pdf).
 
 ## Getting the micro data for a year
 
