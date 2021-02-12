@@ -21,6 +21,8 @@ using DINA, DataFrames
 
 tbl = get_dina(1980)
 df80 = DataFrame(tbl)
+
+first(df80, 5)
 ```
 
 ## Getting the decile-year panel for selected variables
@@ -34,9 +36,10 @@ byvar = :fiinc # compute deciles of `:fiinc`
 
 df = dina_quantile_panel(var, byvar, 10)
 
-filename = joinpath(".", "dina-aggregated.csv") #hide
-df |> CSV.write(filename) #hide
-nothing #hide
+filename = joinpath(".", "dina-aggregated.csv") # hide
+df |> CSV.write(filename) # hide
+
+first(df, 5)
 ```
 
 [download](./dina-aggregated.csv)
