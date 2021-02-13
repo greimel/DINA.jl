@@ -5,13 +5,13 @@ export get_dina, dina_years, aggregate_quantiles, dina_quantile_panel
 using CategoricalArrays: cut
 using Chain: @chain
 using DataDeps: register, DataDep, @datadep_str, unpack
-using DataFrames: DataFrames, DataFrame, disallowmissing!, groupby, combine
+using DataFrames: DataFrames, DataFrame, disallowmissing!, groupby, combine, transform!
 using LinearAlgebra: dot
 using ReadableRegex: look_for, one_or_more, DIGIT
 using StatFiles: StatFiles, load
 using StatsBase: wquantile
 using TableOperations
-
+using Statistics: mean
 
 function __init__()
     register(DataDep(
@@ -50,25 +50,37 @@ function get_dina(year)
     load(@datadep_str(file))
 end
 
-function dina_quantile_panel(var, byvar, ngroups, years = dina_years())
+function dina_quantile_panel(var, byvar, ngroups, years = dina_years();
+                             wgt = :dweght,
+                             equalsplit_quantiles = true)
     mapreduce(vcat, years) do yr
-        aggregate_quantiles(var, byvar, ngroups, yr)
+        aggregate_quantiles(var, byvar, ngroups, yr; wgt, equalsplit_quantiles)
     end
 end
 
-function aggregate_quantiles(var, byvar, ngroups, year)
+function aggregate_quantiles(var, byvar, ngroups, year; wgt, equalsplit_quantiles)
 	tbl0 = get_dina(year)
 	
-	ids = [:id]
+	ids = :id
 	grp = [:age]
-	wgt = :dweght
 	
 	cols = unique([ids; grp; wgt; var; byvar])
 	
 	tbl = TableOperations.select(tbl0, cols...)
 	
 	df = DataFrame(tbl) |> disallowmissing!
-	
+    
+    filter!(ids => >(0), df)
+
+    if equalsplit_quantiles
+        byvar_equalsplit = string(byvar) * "_equalsplit"
+        transform!(
+            groupby(df, :id),
+            byvar => mean => byvar_equalsplit
+        )
+        byvar = byvar_equalsplit
+    end
+
     q = 0:1/ngroups:1
     
 	df.group = cut(df[!,byvar], wquantile(df[!,byvar], df[!,wgt], q), extend=true, labels = format)
