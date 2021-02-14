@@ -12,10 +12,11 @@ begin
 		Pkg.PackageSpec(name = "DINA", version = "0.1.1"),
 		Pkg.PackageSpec(name = "DataAPI", version = "1.4"),
 	])
-	Pkg.add(["CairoMakie", "Revise", "DataFrames", "PlutoUI"])
+	Pkg.add(["CairoMakie", "Revise", "CSV", "DataFrames", "PlutoUI"])
 	
 	#using UnPack: @unpack
 	#using Chain: @chain
+	import CSV
 	using DINA
 	using Dates: year
 	using LinearAlgebra: dot
@@ -25,7 +26,7 @@ begin
 	using CairoMakie
 
 	
-	Base.show(io::IO, ::MIME"text/html", x::DINA.CategoricalArrays.CategoricalValue) = print(io, get(x))
+	#Base.show(io::IO, ::MIME"text/html", x::DINA.CategoricalArrays.CategoricalValue) = print(io, get(x))
 
 
 end
@@ -62,6 +63,11 @@ size(df)
 # ╔═╡ 11e25cc0-6e02-11eb-06ce-478cc66b8410
 md"""
 ## Aggregate Debt
+
+* `ownermort` mortgages for owner-occupied housing
+* `rentalmort`: mortgages for tenant-occupied housing
+* `nonmort`: non-mortgage debt
+* `hwdebt`: total household debt (sum of the three above)
 """
 
 # ╔═╡ f94d2ce4-6e01-11eb-3e0d-5f3a0d45f227
@@ -193,16 +199,24 @@ agg_df = let
 	
 	transform!(df3, ([v, :prices] => ByRow(/) => "r_$(string(v))" for v in var)...)
 	transform!(df2, ([d, inc] => ByRow(/) => string(d) * "2inc" for d in dbt_var)...)
-#	transform!(df3, [:ownermort, :rentalmort] => ByRow(+) => :mort)
-#	transform!(df3, [:mort, ] => ByRow(/) => "mort2inc")
 end
 
 # ╔═╡ 5ecf0b3c-6e02-11eb-280d-ef6617d94d3c
 let d = agg_df
 	fig = Figure()
 	Label(fig[1,1], "Growth of Household-Debt-To-Income in the USA", tellwidth = false)
-	ax1 = Axis(fig[2,1][1,1], ylabel = "relative to 1980")
-	ax2 = Axis(fig[2,1][1,2], ylabel = "relative to total debt in 1980")
+	ax1 = Axis(fig[2,1][1,1])
+	ax2 = Axis(fig[2,1][1,2])
+	
+	box_attr = (color = :gray90, )
+	label_attr = (padding = (3,3,3,3), )
+	
+	Box(fig[2,1][1,1, Top()]; box_attr...)
+	Label(fig[2,1][1,1, Top()], "relative to 1980"; label_attr...)
+	
+	Box(fig[2,1][1,2, Top()]; box_attr...)
+	Label(fig[2,1][1,2, Top()], "relative to total debt in 1980"; label_attr...)
+	
 	
 	axs = [ax1, ax2]
 	
@@ -246,10 +260,12 @@ begin
 	
 	disallowmissing!(df3)
 	
+	inc = :peinc
+	
 	df3.prices = df3.prices ./ first(filter(:year => ==(1980), df3).prices)
 	
 	transform!(df3, ([v, :prices] => ByRow(/) => "r_$(string(v))" for v in var)...)
-	transform!(df3, [:ownermort, :fiinc] => ByRow(/) => "mort2inc")
+	transform!(df3, [:ownermort, inc] => ByRow(/) => "mort2inc")
 end
 
 
@@ -274,7 +290,7 @@ end
 # ╔═╡ 5406fb5e-6d3c-11eb-0723-4bc72209a494
 let
 	fig = Figure()
-	ax = Axis(fig[1,1])
+	ax = Axis(fig[1,1], title = "Mortgage-to-income by income group")
 	
 	colors = [:blue, :red, :green]
 	
@@ -302,15 +318,15 @@ TableOfContents()
 # ╠═31f69312-6bb1-11eb-220d-efd477af3e7a
 # ╠═aa5659fc-6be6-11eb-272c-09834723ab9b
 # ╟─11e25cc0-6e02-11eb-06ce-478cc66b8410
+# ╟─5ecf0b3c-6e02-11eb-280d-ef6617d94d3c
 # ╠═302d69a4-6e02-11eb-2ee6-01bd650a5a63
-# ╠═5ecf0b3c-6e02-11eb-280d-ef6617d94d3c
 # ╟─f94d2ce4-6e01-11eb-3e0d-5f3a0d45f227
 # ╠═339dee36-6d37-11eb-0b57-cf3dc61977a7
 # ╠═e8d56ff8-6d42-11eb-13c0-73e77a9df363
 # ╠═5406fb5e-6d3c-11eb-0723-4bc72209a494
 # ╟─ad57105a-6bab-11eb-398b-3d52dcac3e84
 # ╟─caeb9980-6ec4-11eb-3e36-932eb7e89720
-# ╠═d9212d4e-6ec4-11eb-2a24-5342bdf4fdff
+# ╟─d9212d4e-6ec4-11eb-2a24-5342bdf4fdff
 # ╟─bed05dd4-6ec4-11eb-239a-abfdf89aec2f
 # ╠═6b11d6da-6bab-11eb-1919-bddfe835570a
 # ╠═bb5e7aa8-6bab-11eb-2d1e-6fa08cd912d0
