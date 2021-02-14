@@ -2,10 +2,11 @@ module DINA
 
 export get_dina, dina_years, aggregate_quantiles, dina_quantile_panel
 
-using CategoricalArrays: cut
+using CategoricalArrays: cut, recode, levels
 using Chain: @chain
 using DataDeps: register, DataDep, @datadep_str, unpack
-using DataFrames: DataFrames, DataFrame, disallowmissing!, groupby, combine, transform!
+using DataFrames: DataFrames, DataFrame, disallowmissing!,
+    groupby, combine, transform!, ByRow
 using LinearAlgebra: dot
 using ReadableRegex: look_for, one_or_more, DIGIT
 using StatFiles: StatFiles, load
@@ -83,18 +84,29 @@ function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
 
     q = 0:1/ngroups:1
     
-	df.group = cut(df[!,byvar], wquantile(df[!,byvar], df[!,wgt], q), extend=true, labels = format)
-	
-	agg_df = combine(
-        groupby(df, [:group, :age]),
+    # Cut byvar into groups (e.g. income into deciles)
+    groups = cut(df[!,byvar], wquantile(df[!,byvar], df[!,wgt], q), extend=true, labels = format)
+    df.group_id = parse.(Int, string.(groups))
+
+    # Aggregate by group
+    agg_df = combine(
+        groupby(df, [:group_id, :age]),
         ([v, wgt] => ((x,w) -> dot(x,w)./sum(w)) => v for v in var)..., wgt => sum => wgt
         )
     
     agg_df[!,:year] .= year
-	
+
+    # Other group indentiers
+    df.group = recode(groups, (g_id => "group " * g_id for g_id in levels(groups))...)
+
+    if ngroups == 10
+        transform!(agg_df,
+            :group_id => ByRow(x -> ifelse(x <= 5, "bottom 50", ifelse(x <= 9, "middle 40", "top 10"))) => :three_groups)
+    end
+    
 	agg_df
 end
 
-format(from, to, i; kwargs...) = "group $i"
+format(from, to, i; kwargs...) = "$i"
 
 end
