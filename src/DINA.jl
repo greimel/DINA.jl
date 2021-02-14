@@ -52,33 +52,33 @@ end
 
 function dina_quantile_panel(var, byvar, ngroups, years = dina_years();
                              wgt = :dweght,
-                             equalsplit_quantiles = true)
+                             equalsplit = true)
     mapreduce(vcat, years) do yr
-        aggregate_quantiles(var, byvar, ngroups, yr; wgt, equalsplit_quantiles)
+        aggregate_quantiles(var, byvar, ngroups, yr; wgt, by_taxunit = equalsplit)
     end
 end
 
-function aggregate_quantiles(var, byvar, ngroups, year; wgt, equalsplit_quantiles)
+function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
 	tbl0 = get_dina(year)
 	
 	ids = :id
 	grp = [:age]
-	
-	cols = unique([ids; grp; wgt; var; byvar])
-	
+    
+    cols0 = unique([wgt; var; byvar])
+	cols = unique([ids; grp; cols0])
+    
 	tbl = TableOperations.select(tbl0, cols...)
 	
 	df = DataFrame(tbl) |> disallowmissing!
     
     filter!(ids => >(0), df)
 
-    if equalsplit_quantiles
-        byvar_equalsplit = string(byvar) * "_equalsplit"
+    if by_taxunit
         transform!(
             groupby(df, :id),
-            byvar => mean => byvar_equalsplit
+            cols0 .=> sum, 
+            renamecols = false
         )
-        byvar = byvar_equalsplit
     end
 
     q = 0:1/ngroups:1
