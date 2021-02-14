@@ -12,7 +12,7 @@ using Test
     var = [:fiinc, :fninc, :ownermort, :ownerhome, :rentalmort, :rentalhome]
     df = dina_quantile_panel(var, :fiinc, 10)
     @test df isa DINA.DataFrames.DataFrame
-    @test size(df) == (1530, 10)
+    @test size(df) == (1530, 11)
 
     filename = joinpath(@__DIR__(), "dina-aggregated.csv")
     df |> CSV.write(filename)
