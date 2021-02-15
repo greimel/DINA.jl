@@ -97,11 +97,10 @@ let d = agg_df
 	# Legend
 	leg_attr = (orientation = :horizontal, tellheight = true, tellwidth = false)
 	leg = Legend(fig[3,1], axs[1]; leg_attr...)
-	
+
+    save("fig_dbt.svg", fig) # hide
 	fig
 end
-
-save("fig_dbt.svg", fig) # hide
 ```
 
 ![fig_dbt](fig_dbt.svg)
