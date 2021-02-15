@@ -24,7 +24,7 @@ begin
 	using PlutoUI: TableOfContents
 	using DataFrames
 	using CairoMakie
-
+	using CairoMakie: AbstractPlotting.wong_colors
 	
 	#Base.show(io::IO, ::MIME"text/html", x::DINA.CategoricalArrays.CategoricalValue) = print(io, get(x))
 
@@ -239,13 +239,12 @@ let d = agg_df
 	Label(fig[2,1][1,2, Top()], "relative to total debt in 1980"; label_attr...)
 	
 	# Plot
-	colors = [:blue, :red, :green, :orange]
 	i80 = findfirst(d.year .== 1980)
 	
 	for (i,dbt) in enumerate(dbt_var)
 		var = string(dbt) * "2inc"
 		for (j, fractionof) in enumerate([var, :hwdeb2inc])
-			lines!(axs[j], d.year, d[!,var]/d[i80,fractionof], label = string(dbt), color = colors[i])
+			lines!(axs[j], d.year, d[!,var]/d[i80,fractionof], label = string(dbt), color = wong_colors[i])
 		end
 	end
 
@@ -261,11 +260,9 @@ let
 	fig = Figure()
 	ax = Axis(fig[1,1], title="Growth of real pre-tax incomes across income groups")
 	
-	colors = [:blue, :red, :green]
-	
 	for (i,d) in enumerate(groupby(df3, :three_groups))
 			i80 = findfirst(d.year .== 1980)
-			lines!(ax, d.year, d.r_peinc ./ d.r_peinc[i80], label = only(unique(d.three_groups)), color = colors[i])
+			lines!(ax, d.year, d.r_peinc ./ d.r_peinc[i80], label = only(unique(d.three_groups)), color = wong_colors[i])
 	end
 	
 	vlines!(ax, [1980, 2007])
@@ -278,11 +275,9 @@ let
 	fig = Figure()
 	ax = Axis(fig[1,1], title = "Mortgage-to-income by income group")
 	
-	colors = [:blue, :red, :green]
-	
 	for (i,d) in enumerate(groupby(df3, :three_groups))
 			i80 = 17 #findfirst(d.year == 1980)
-			lines!(ax, d.year, d.mort2inc ./ d.mort2inc[i80], label = only(unique(d.three_groups)), color = colors[i])
+			lines!(ax, d.year, d.mort2inc ./ d.mort2inc[i80], label = only(unique(d.three_groups)), color = wong_colors[i])
 	end
 
 	Legend(fig[1,2], ax)
