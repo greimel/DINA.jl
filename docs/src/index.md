@@ -101,6 +101,7 @@ let d = agg_df
 
     save("fig_dbt.svg", fig) # hide
 	fig
+    nothing # hide
 end
 ```
 
