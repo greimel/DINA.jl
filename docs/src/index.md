@@ -53,6 +53,7 @@ first(df, 5)
 ```@example panel
 using DataFrames, CairoMakie
 using CairoMakie: AbstractPlotting.wong_colors
+using LinearAlgebra: dot
 
 agg_df = let
     df1 = select(df,
