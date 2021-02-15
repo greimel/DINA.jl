@@ -31,8 +31,12 @@ first(df80, 5)
 using DINA
 import CSV
 
-var = [:fiinc, :fninc, :ownermort, :ownerhome, :rentalmort, :rentalhome]
-byvar = :fiinc # compute deciles of `:fiinc`
+inc = :peinc
+wgt = :dweght
+
+dbt_var = [:ownermort, :rentalmort, :nonmort, :hwdeb]
+var = [[:fiinc, :fninc, :ptinc, inc, :poinc, :ownerhome, :rentalhome]; dbt_var]
+byvar = inc # compute deciles of `:peinc`
 
 df = dina_quantile_panel(var, byvar, 10)
 
@@ -43,6 +47,64 @@ first(df, 5)
 ```
 
 [download](./dina-aggregated.csv)
+
+## Some plots
+
+```@example panel
+using DataFrames, CairoMakie
+
+agg_df = let
+    df1 = select(df,
+	    :group_id,
+	    :age, :year, wgt, var...
+    )
+			
+    df2 = combine(
+	    groupby(df1, :year),
+	    ([v, wgt] => ((x,w) -> dot(x,w)/sum(w)) => v for v in var)...
+    )
+		
+    transform!(df2, ([d, inc] => ByRow(/) => string(d) * "2inc" for d in dbt_var)...)
+end
+
+let d = agg_df
+	fig = Figure()
+	
+	# Define Layout, Labels, Titles
+	Label(fig[1,1], "Growth of Household-Debt-To-Income in the USA", tellwidth = false)
+	axs = [Axis(fig[2,1][1,i]) for i in 1:2]
+	
+	box_attr = (color = :gray90, )
+	label_attr = (padding = (3,3,3,3), )
+	
+	Box(fig[2,1][1,1, Top()]; box_attr...)
+	Label(fig[2,1][1,1, Top()], "relative to 1980"; label_attr...)
+	
+	Box(fig[2,1][1,2, Top()]; box_attr...)
+	Label(fig[2,1][1,2, Top()], "relative to total debt in 1980"; label_attr...)
+	
+	# Plot
+	colors = [:blue, :red, :green, :orange]
+	i80 = findfirst(d.year .== 1980)
+	
+	for (i,dbt) in enumerate(dbt_var)
+		var = string(dbt) * "2inc"
+		for (j, fractionof) in enumerate([var, :hwdeb2inc])
+			lines!(axs[j], d.year, d[!,var]/d[i80,fractionof], label = string(dbt), color = colors[i])
+		end
+	end
+
+	# Legend
+	leg_attr = (orientation = :horizontal, tellheight = true, tellwidth = false)
+	leg = Legend(fig[3,1], axs[1]; leg_attr...)
+	
+	fig
+end
+
+save("fig_dbt.svg", fig) # hide
+```
+
+![fig_dbt](fig_dbt.svg)
 
 
 ```@index
