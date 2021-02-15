@@ -172,70 +172,6 @@ DATE	GDPDEF
 	gdpdef.year = year.(gdpdef.DATE)
 end
 
-# ╔═╡ 302d69a4-6e02-11eb-2ee6-01bd650a5a63
-agg_df = let
-	df1 = select(df,
-		:group_id,
-		:age, :year, wgt, var...
-	)
-	
-	filter!(:age => !in([65]), df1)
-		
-	df2 = combine(
-		groupby(df1, :year),
-		([v, wgt] => ((x,w) -> dot(x,w)/sum(w)) => v for v in var)...
-	)
-	
-	df3 = leftjoin(df2, gdpdef, on = :year)
-	rename!(df3, :GDPDEF => :prices)
-
-	filter!(:prices => !ismissing, df3)
-	
-	disallowmissing!(df3)
-	
-	df3.prices = df3.prices ./ first(filter(:year => ==(1980), df3).prices)
-	
-	inc = :peinc
-	
-	transform!(df3, ([v, :prices] => ByRow(/) => "r_$(string(v))" for v in var)...)
-	transform!(df2, ([d, inc] => ByRow(/) => string(d) * "2inc" for d in dbt_var)...)
-end
-
-# ╔═╡ 5ecf0b3c-6e02-11eb-280d-ef6617d94d3c
-let d = agg_df
-	fig = Figure()
-	Label(fig[1,1], "Growth of Household-Debt-To-Income in the USA", tellwidth = false)
-	ax1 = Axis(fig[2,1][1,1])
-	ax2 = Axis(fig[2,1][1,2])
-	
-	box_attr = (color = :gray90, )
-	label_attr = (padding = (3,3,3,3), )
-	
-	Box(fig[2,1][1,1, Top()]; box_attr...)
-	Label(fig[2,1][1,1, Top()], "relative to 1980"; label_attr...)
-	
-	Box(fig[2,1][1,2, Top()]; box_attr...)
-	Label(fig[2,1][1,2, Top()], "relative to total debt in 1980"; label_attr...)
-	
-	
-	axs = [ax1, ax2]
-	
-	colors = [:blue, :red, :green, :orange]
-	i80 = findfirst(d.year .== 1980)
-	
-	for (i,dbt) in enumerate(dbt_var)
-		var = string(dbt) * "2inc"
-		for (j, fractionof) in enumerate([var, :hwdeb2inc])
-			lines!(axs[j], d.year, d[!,var]/d[i80,fractionof], label = string(dbt), color = colors[i])
-		end
-	end
-
-	leg_attr = (orientation = :horizontal, tellheight = true, tellwidth = false)
-	leg = Legend(fig[3,1], ax1; leg_attr...)
-	
-	fig
-end
-
 # ╔═╡ 339dee36-6d37-11eb-0b57-cf3dc61977a7
 begin
 	df1 = select(df,
@@ -269,6 +205,56 @@ begin
 end
 
 
+
+# ╔═╡ 302d69a4-6e02-11eb-2ee6-01bd650a5a63
+agg_df = let
+    df1 = select(df,
+	    :group_id,
+	    :age, :year, wgt, var...
+    )
+			
+    df2 = combine(
+	    groupby(df1, :year),
+	    ([v, wgt] => ((x,w) -> dot(x,w)/sum(w)) => v for v in var)...
+    )
+		
+    transform!(df2, ([d, inc] => ByRow(/) => string(d) * "2inc" for d in dbt_var)...)
+end
+
+# ╔═╡ 5ecf0b3c-6e02-11eb-280d-ef6617d94d3c
+let d = agg_df
+	fig = Figure()
+	
+	# Define Layout, Labels, Titles
+	Label(fig[1,1], "Growth of Household-Debt-To-Income in the USA", tellwidth = false)
+	axs = [Axis(fig[2,1][1,i]) for i in 1:2]
+	
+	box_attr = (color = :gray90, )
+	label_attr = (padding = (3,3,3,3), )
+	
+	Box(fig[2,1][1,1, Top()]; box_attr...)
+	Label(fig[2,1][1,1, Top()], "relative to 1980"; label_attr...)
+	
+	Box(fig[2,1][1,2, Top()]; box_attr...)
+	Label(fig[2,1][1,2, Top()], "relative to total debt in 1980"; label_attr...)
+	
+	# Plot
+	colors = [:blue, :red, :green, :orange]
+	i80 = findfirst(d.year .== 1980)
+	
+	for (i,dbt) in enumerate(dbt_var)
+		var = string(dbt) * "2inc"
+		for (j, fractionof) in enumerate([var, :hwdeb2inc])
+			lines!(axs[j], d.year, d[!,var]/d[i80,fractionof], label = string(dbt), color = colors[i])
+		end
+	end
+
+	# Legend
+	leg_attr = (orientation = :horizontal, tellheight = true, tellwidth = false)
+	leg = Legend(fig[3,1], axs[1]; leg_attr...)
+	
+	fig
+end
 
 # ╔═╡ e8d56ff8-6d42-11eb-13c0-73e77a9df363
 let
@@ -318,7 +304,7 @@ TableOfContents()
 # ╠═31f69312-6bb1-11eb-220d-efd477af3e7a
 # ╠═aa5659fc-6be6-11eb-272c-09834723ab9b
 # ╟─11e25cc0-6e02-11eb-06ce-478cc66b8410
-# ╟─5ecf0b3c-6e02-11eb-280d-ef6617d94d3c
+# ╠═5ecf0b3c-6e02-11eb-280d-ef6617d94d3c
 # ╠═302d69a4-6e02-11eb-2ee6-01bd650a5a63
 # ╟─f94d2ce4-6e01-11eb-3e0d-5f3a0d45f227
 # ╠═339dee36-6d37-11eb-0b57-cf3dc61977a7
