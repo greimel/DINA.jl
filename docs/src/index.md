@@ -52,6 +52,7 @@ first(df, 5)
 
 ```@example panel
 using DataFrames, CairoMakie
+using CairoMakie: AbstractPlotting.wong_colors
 
 agg_df = let
     df1 = select(df,
@@ -84,13 +85,12 @@ let d = agg_df
 	Label(fig[2,1][1,2, Top()], "relative to total debt in 1980"; label_attr...)
 	
 	# Plot
-	colors = [:blue, :red, :green, :orange]
 	i80 = findfirst(d.year .== 1980)
 	
 	for (i,dbt) in enumerate(dbt_var)
 		var = string(dbt) * "2inc"
 		for (j, fractionof) in enumerate([var, :hwdeb2inc])
-			lines!(axs[j], d.year, d[!,var]/d[i80,fractionof], label = string(dbt), color = colors[i])
+			lines!(axs[j], d.year, d[!,var]/d[i80,fractionof], label = string(dbt), color = wong_colors[i])
 		end
 	end
 
