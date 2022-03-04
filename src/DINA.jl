@@ -8,9 +8,10 @@ using DataDeps: register, DataDep, @datadep_str, unpack
 using DataFrames: DataFrames, DataFrame, disallowmissing!,
     groupby, combine, transform!, ByRow
 using LinearAlgebra: dot
+#using ProgressMeter: @showprogress
 using ReadableRegex: look_for, one_or_more, DIGIT
 using StatFiles: StatFiles, load
-using StatsBase: wquantile
+using StatsBase: quantile, weights
 using TableOperations
 using Statistics: mean
 
@@ -85,7 +86,7 @@ function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
     q = 0:1/ngroups:1
     
     # Cut byvar into groups (e.g. income into deciles)
-    groups = cut(df[!,byvar], wquantile(df[!,byvar], df[!,wgt], q), extend=true, labels = format)
+    groups = cut(df[!,byvar], quantile(df[!,byvar], weights(df[!,wgt]), q), extend=true, labels = format)
     df.group_id = parse.(Int, string.(groups))
 
     # Aggregate by group
