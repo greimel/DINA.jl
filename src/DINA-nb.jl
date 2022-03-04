@@ -87,7 +87,7 @@ md"""
 # ╔═╡ 38b988fe-6d20-439a-ac8b-6d27505daaaa
 function dina_years()
 	files_in_data_dir = readdir(@datadep_str("USDINA"))
-	dta_files = filter(endswith(".dta"), files_in_data_dir)
+	dta_files = filter(endswith(r"(.dta|.csv)"), files_in_data_dir)
 	
 	r = look_for(one_or_more(DIGIT))
 	
@@ -97,19 +97,23 @@ function dina_years()
 	end
 end
 
-# ╔═╡ a5acbff0-926f-4392-85d1-0f370598c457
-dina_years()
+# ╔═╡ f0380f20-b91d-48f8-8326-d84fc34c2c08
+import CSV
 
 # ╔═╡ 4e8a38fa-f1c0-40e8-abef-3769503eb430
-function get_dina(year; cols = missing)
-    file = "USDINA/usdina$(year).dta"
-    tbl = load(@datadep_str(file))
+function get_dina(year)
+	base_path = datadep"USDINA"
+    file_wo_extension = joinpath(base_path, "usdina$(year)")
+	dta = file_wo_extension * ".dta"
+	csv = file_wo_extension * ".csv"
 
-	if !ismissing(cols)
-		return TableOperations.select(tbl, cols...)
-	else
-		return tbl
+	if !isfile(csv)
+		tbl = load(dta)
+		CSV.write(csv, tbl)
+		rm(dta)
 	end
+
+	CSV.File(csv)
 end
 
 # ╔═╡ 63c8c429-ed9e-44cb-9cc9-ebd0143cfe13
@@ -123,9 +127,9 @@ function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
     cols0 = unique([wgt; var; byvar])
 	cols = unique([ids; grp; cols0])
 
-	tbl = get_dina(year; cols)
+	tbl = get_dina(year)
     
-	df = DataFrame(tbl, copycols=false)
+	df = select(DataFrame(tbl, copycols=false), cols...)
 
     disallowmissing!(df)
 
@@ -197,6 +201,7 @@ TableOfContents()
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 Chain = "8be319e6-bccf-4806-a6f7-6fae938471bc"
 DataDeps = "124859b0-ceae-595e-8997-d05f6a7a8dfe"
@@ -211,6 +216,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TableOperations = "ab02a1b2-a7df-11e8-156e-fb1833f50b87"
 
 [compat]
+CSV = "~0.10.2"
 CategoricalArrays = "~0.10.3"
 Chain = "~0.4.10"
 DataDeps = "~0.7.7"
@@ -251,6 +257,12 @@ git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
 version = "0.5.10"
 
+[[deps.CSV]]
+deps = ["CodecZlib", "Dates", "FilePathsBase", "InlineStrings", "Mmap", "Parsers", "PooledArrays", "SentinelArrays", "Tables", "Unicode", "WeakRefStrings"]
+git-tree-sha1 = "9519274b50500b8029973d241d32cfbf0b127d97"
+uuid = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+version = "0.10.2"
+
 [[deps.CategoricalArrays]]
 deps = ["DataAPI", "Future", "Missings", "Printf", "Requires", "Statistics", "Unicode"]
 git-tree-sha1 = "3b60064cb48efe986179359e08ffb568a6d510a2"
@@ -273,6 +285,12 @@ deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
 git-tree-sha1 = "bf98fa45a0a4cee295de98d4c1462be26345b9a1"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.2"
+
+[[deps.CodecZlib]]
+deps = ["TranscodingStreams", "Zlib_jll"]
+git-tree-sha1 = "ded953804d019afa9a3f98981d99b33e3db7b6da"
+uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
+version = "0.7.0"
 
 [[deps.ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
@@ -363,6 +381,12 @@ git-tree-sha1 = "80ced645013a5dbdc52cf70329399c35ce007fae"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 version = "1.13.0"
 
+[[deps.FilePathsBase]]
+deps = ["Compat", "Dates", "Mmap", "Printf", "Test", "UUIDs"]
+git-tree-sha1 = "04d13bfa8ef11720c24e4d840c0033d145537df7"
+uuid = "48062228-2e41-5def-b9a4-89aafe57970f"
+version = "0.9.17"
+
 [[deps.FixedPointNumbers]]
 deps = ["Statistics"]
 git-tree-sha1 = "335bfdceacc84c5cdf16aadc768aa5ddfc5383cc"
@@ -406,6 +430,12 @@ version = "0.2.2"
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
 uuid = "83e8ac13-25f8-5344-8a64-a9f2b223428f"
 version = "0.5.1"
+
+[[deps.InlineStrings]]
+deps = ["Parsers"]
+git-tree-sha1 = "61feba885fac3a407465726d0c330b3055df897f"
+uuid = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
+version = "1.1.2"
 
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
@@ -693,6 +723,12 @@ uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[[deps.TranscodingStreams]]
+deps = ["Random", "Test"]
+git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
+uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
+version = "0.9.6"
+
 [[deps.URIs]]
 git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
@@ -704,6 +740,12 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[deps.Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+
+[[deps.WeakRefStrings]]
+deps = ["DataAPI", "InlineStrings", "Parsers"]
+git-tree-sha1 = "c69f9da3ff2f4f02e811c3323c22e5dfcb584cfa"
+uuid = "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
+version = "1.4.1"
 
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
@@ -728,7 +770,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═a9a03d51-cbec-443f-ae27-b44bf1a25916
 # ╟─0aaf7abf-a900-4ee1-b590-86ff9fb1598e
 # ╠═38b988fe-6d20-439a-ac8b-6d27505daaaa
-# ╠═a5acbff0-926f-4392-85d1-0f370598c457
+# ╠═f0380f20-b91d-48f8-8326-d84fc34c2c08
 # ╠═4e8a38fa-f1c0-40e8-abef-3769503eb430
 # ╠═35995aa6-6a1a-4f50-9a40-5f1f98912425
 # ╠═f694c25d-505b-4db3-bd32-d3399a6bb540
