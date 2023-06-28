@@ -93,7 +93,7 @@ function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
     # Aggregate by group
     agg_df = combine(
         groupby(df, [:group_id, :age]),
-        ([v, wgt] => ((x,w) -> mean(x, weights(w))) => v for v in var)..., wgt => sum => wgt
+        ([v, wgt] => ((x,w) -> dot(x, w) / sum(w)) => v for v in var)..., wgt => sum => wgt
         )
     
     agg_df[!,:year] .= year

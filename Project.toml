@@ -1,7 +1,7 @@
 name = "DINA"
 uuid = "2e9d5fb1-712f-4dff-9379-c18f12b3746d"
 authors = ["Fabian Greimel <fabgrei@gmail.com> and contributors"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
