@@ -6,13 +6,12 @@ using CategoricalArrays: cut, recode, levels
 using Chain: @chain
 using DataDeps: register, DataDep, @datadep_str, unpack
 using DataFrames: DataFrames, DataFrame, disallowmissing!,
-    groupby, combine, transform!, ByRow
+    groupby, combine, transform!, select!, ByRow
 using LinearAlgebra: dot
 #using ProgressMeter: @showprogress
 using ReadableRegex: look_for, one_or_more, DIGIT
-using StatFiles: StatFiles, load
+using ReadStatTables: readstat
 using StatsBase: quantile, weights
-using TableOperations
 using Statistics: mean
 
 function __init__()
@@ -49,7 +48,7 @@ end
 
 function get_dina(year)
     file = "USDINA/usdina$(year).dta"
-    load(@datadep_str(file))
+    DataFrame(readstat(@datadep_str(file)))
 end
 
 function dina_quantile_panel(var, byvar, ngroups, years = dina_years();
@@ -61,7 +60,7 @@ function dina_quantile_panel(var, byvar, ngroups, years = dina_years();
 end
 
 function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
-	tbl0 = get_dina(year)
+	df0 = get_dina(year)
 	
 	ids = :id
 	grp = [:age]
@@ -69,9 +68,11 @@ function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
     cols0 = unique([wgt; var; byvar])
 	cols = unique([ids; grp; cols0])
     
-	tbl = TableOperations.select(tbl0, cols...)
-	
-	df = DataFrame(tbl) |> disallowmissing!
+    #@info df0
+    df = @chain df0 begin
+        select!(cols...)
+        disallowmissing!
+    end
     
     filter!(ids => >(0), df)
 
@@ -92,7 +93,7 @@ function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
     # Aggregate by group
     agg_df = combine(
         groupby(df, [:group_id, :age]),
-        ([v, wgt] => ((x,w) -> dot(x,w)./sum(w)) => v for v in var)..., wgt => sum => wgt
+        ([v, wgt] => ((x,w) -> mean(x, weights(w))) => v for v in var)..., wgt => sum => wgt
         )
     
     agg_df[!,:year] .= year
@@ -105,7 +106,7 @@ function aggregate_quantiles(var, byvar, ngroups, year; wgt, by_taxunit)
             :group_id => ByRow(x -> ifelse(x <= 5, "bottom 50", ifelse(x <= 9, "middle 40", "top 10"))) => :three_groups)
     end
     
-	agg_df
+    agg_df
 end
 
 format(from, to, i; kwargs...) = "$i"
