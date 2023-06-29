@@ -22,11 +22,11 @@ end
 @testitem "Income group panel" begin
     using CSV: CSV
 
-    var = [:fiinc, :fninc, :ownermort, :ownerhome, :rentalmort, :rentalhome]
+    var = [:fiinc, :peinc, :ptinc, :fninc, :ownermort, :ownerhome, :rentalmort, :rentalhome, :hwdeb, :nonmort]
 
     df = dina_quantile_panel(var, :fiinc, 10)
     @test df isa DINA.DataFrames.DataFrame
-    @test size(df) == (1530, 11)
+    @test size(df) == (1530, 15)
 
     filename = joinpath(@__DIR__(), "dina-aggregated.csv")
     sort!(df, [:year, :group_id, :age])
